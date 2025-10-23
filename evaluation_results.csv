@@ -1,2 +1,3 @@
-accuracy,precision,recall,f1_score
-0.9642,0.9659949622166247,0.9591496456857024,0.9625601338632085
+version https://git-lfs.github.com/spec/v1
+oid sha256:59872cdd59701655daeb945fee1cd656b06a0ceb33da548baa3f1f65d6f54b31
+size 101
