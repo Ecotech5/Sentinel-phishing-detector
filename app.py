@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 import torch
-from core.analyzer import Analyzer
+from core.analyzer import SentinelAnalyzer
 import re
 
 # ================== CONFIG ==================
@@ -18,8 +18,8 @@ model = DistilBertForSequenceClassification.from_pretrained(MODEL_PATH)
 model.to(DEVICE)
 model.eval()
 
-# Initialize  Analyzer
-analyzer = Analyzer()
+# Initialize Sentinel Analyzer
+analyzer = SentinelAnalyzer()
 
 # ================== HELPERS ==================
 def clean_text(text):
