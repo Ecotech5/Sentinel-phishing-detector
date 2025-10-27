@@ -2,7 +2,8 @@ import re
 import requests
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
-from .helpers import clean_text, load_model
+from core.utils.helpers import clean_text, load_model
+
 
 
 def extract_features(url: str) -> dict:

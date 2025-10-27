@@ -7,3 +7,32 @@ __pycache__/
 *.db
 *.sqlite3
 *.log
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+.venv/
+venv/
+
+# Data / models
+data/
+*.csv
+*.pkl
+*.pt
+*.bin
+models/
+outputs/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Git LFS (if used)
+.git-lfs
