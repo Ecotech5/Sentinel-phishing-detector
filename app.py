@@ -6,7 +6,7 @@ import torch
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 
 # ================== CONFIG ==================
-#MODEL_PATH = "fine_tuned_model"
+MODEL_PATH = "fine_tuned_model"
 model_path = "phishing_model.pkl"
 vectorizer_path = "tfidf_vectorizer.pkl"
 
