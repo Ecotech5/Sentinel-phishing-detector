@@ -3,57 +3,37 @@ from core.analyzer import SentinelAnalyzer
 import os
 import re
 import torch
-import gdown
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+import gdown
 
 # ================== CONFIG ==================
-MODEL_PATH = "fine_tuned_model"
-DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1I6ZPoaSvt7SgsBmqw8Fn303VYQ3o21AY"
-CSV_FILE_URL = "https://drive.google.com/uc?id=1Y57FyZTiIPrdCYVh9Yd9Rh6kUA1iV6Yv"
+MODEL_DIR = "fine_tuned_model"
+DRIVE_MODEL_URL = "https://drive.google.com/drive/folders/1I6ZPoaSvt7SgsBmqw8Fn303VYQ3o21AY?usp=drive_link"
+EVAL_CSV_URL = "https://drive.google.com/file/d/1Y57FyZTiIPrdCYVh9Yd9Rh6kUA1iV6Yv/view?usp=drive_link"
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ================== INIT APP ==================
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
-# ================== DOWNLOAD MODEL IF MISSING ==================
-def ensure_model_files():
-    """
-    Automatically download the model and evaluation CSV from Google Drive if missing.
-    """
-    os.makedirs(MODEL_PATH, exist_ok=True)
-
-    # Check model directory
-    if not os.listdir(MODEL_PATH):
-        print("📥 Downloading fine-tuned model from Google Drive...")
-        try:
-            gdown.download_folder(DRIVE_FOLDER_URL, output=MODEL_PATH, quiet=False, use_cookies=False)
-            print("✅ Model downloaded successfully.")
-        except Exception as e:
-            print(f"⚠️ Failed to download model: {e}")
+# ================== DOWNLOAD MODEL FROM DRIVE ==================
+def ensure_model():
+    """Download the model folder from Google Drive if not already available."""
+    if not os.path.exists(MODEL_DIR):
+        os.makedirs(MODEL_DIR, exist_ok=True)
+        print("⬇️ Downloading fine-tuned model from Google Drive...")
+        gdown.download_folder(DRIVE_MODEL_URL, quiet=False, use_cookies=False)
+        print("✅ Model downloaded successfully.")
     else:
-        print("✅ Model directory already exists.")
+        print("✅ Model directory already present.")
 
-    # Download evaluation CSV if missing
-    if not os.path.exists("evaluation_results.csv"):
-        print("📥 Downloading evaluation_results.csv...")
-        try:
-            gdown.download(CSV_FILE_URL, output="evaluation_results.csv", quiet=False)
-            print("✅ evaluation_results.csv downloaded successfully.")
-        except Exception as e:
-            print(f"⚠️ Failed to download evaluation_results.csv: {e}")
-    else:
-        print("✅ evaluation_results.csv already exists.")
-
-
-# Run the download check before loading model
-ensure_model_files()
+ensure_model()
 
 # ================== LOAD MODEL ==================
 print("🚀 Loading fine-tuned phishing detection model...")
 try:
-    tokenizer = DistilBertTokenizer.from_pretrained(MODEL_PATH)
-    model = DistilBertForSequenceClassification.from_pretrained(MODEL_PATH)
+    tokenizer = DistilBertTokenizer.from_pretrained(MODEL_DIR)
+    model = DistilBertForSequenceClassification.from_pretrained(MODEL_DIR)
     model.to(DEVICE)
     model.eval()
     print("✅ Model loaded successfully.")
@@ -71,7 +51,6 @@ def clean_text(text: str) -> str:
     text = re.sub(r"[^a-zA-Z0-9\s]", " ", text)
     text = re.sub(r"\s+", " ", text)
     return text.lower().strip()
-
 
 def predict_phishing(text: str):
     """Run phishing detection using the fine-tuned DistilBERT model."""
@@ -113,7 +92,6 @@ def detect_phishing():
     cleaned = clean_text(text)
     result = predict_phishing(cleaned)
 
-    # Add contextual recommendations
     recommendation = (
         "⚠️ Be cautious — this email may be a phishing attempt. Avoid clicking links or sharing personal info."
         if result["label"] == "Phishing"
@@ -126,7 +104,6 @@ def detect_phishing():
         "recommendation": recommendation
     })
 
-
 @app.route("/api/analyze", methods=["POST"])
 def analyze_url():
     """Perform full URL analysis using threat intelligence + ML model."""
@@ -136,9 +113,7 @@ def analyze_url():
     if not url:
         return jsonify({"error": "Missing 'url' field"}), 400
 
-    # Threat intelligence check
     threat_data = analyzer.full_analysis(url)
-    # ML detection
     ml_result = predict_phishing(url)
 
     recommendation = (
@@ -154,7 +129,6 @@ def analyze_url():
         "recommendation": recommendation
     })
 
-
 @app.route("/api")
 def api_info():
     """API Information endpoint."""
@@ -162,7 +136,6 @@ def api_info():
         "message": "🛡️ SentinelURL - Real-Time Phishing Detection API",
         "endpoints": ["/api/detect", "/api/analyze"]
     })
-
 
 # ================== SERVER RUN ==================
 if __name__ == "__main__":
