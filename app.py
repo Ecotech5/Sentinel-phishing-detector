@@ -7,8 +7,7 @@ from transformers import DistilBertTokenizer, DistilBertForSequenceClassificatio
 
 # ================== CONFIG ==================
 MODEL_PATH = "fine_tuned_model"
-model_path = "phishing_model.pkl"
-vectorizer_path = "tfidf_vectorizer.pkl"
+Drive_URL = "https://drive.google.com/drive/folders/1I6ZPoaSvt7SgsBmqw8Fn303VYQ3o21AY?usp=drive_link"
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
