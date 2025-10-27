@@ -3,16 +3,51 @@ from core.analyzer import SentinelAnalyzer
 import os
 import re
 import torch
+import gdown
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 
 # ================== CONFIG ==================
 MODEL_PATH = "fine_tuned_model"
-Drive_URL = "https://drive.google.com/drive/folders/1I6ZPoaSvt7SgsBmqw8Fn303VYQ3o21AY?usp=drive_link"
+DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1I6ZPoaSvt7SgsBmqw8Fn303VYQ3o21AY"
+CSV_FILE_URL = "https://drive.google.com/uc?id=1Y57FyZTiIPrdCYVh9Yd9Rh6kUA1iV6Yv"
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ================== INIT APP ==================
 app = Flask(__name__, template_folder="templates", static_folder="static")
+
+# ================== DOWNLOAD MODEL IF MISSING ==================
+def ensure_model_files():
+    """
+    Automatically download the model and evaluation CSV from Google Drive if missing.
+    """
+    os.makedirs(MODEL_PATH, exist_ok=True)
+
+    # Check model directory
+    if not os.listdir(MODEL_PATH):
+        print("📥 Downloading fine-tuned model from Google Drive...")
+        try:
+            gdown.download_folder(DRIVE_FOLDER_URL, output=MODEL_PATH, quiet=False, use_cookies=False)
+            print("✅ Model downloaded successfully.")
+        except Exception as e:
+            print(f"⚠️ Failed to download model: {e}")
+    else:
+        print("✅ Model directory already exists.")
+
+    # Download evaluation CSV if missing
+    if not os.path.exists("evaluation_results.csv"):
+        print("📥 Downloading evaluation_results.csv...")
+        try:
+            gdown.download(CSV_FILE_URL, output="evaluation_results.csv", quiet=False)
+            print("✅ evaluation_results.csv downloaded successfully.")
+        except Exception as e:
+            print(f"⚠️ Failed to download evaluation_results.csv: {e}")
+    else:
+        print("✅ evaluation_results.csv already exists.")
+
+
+# Run the download check before loading model
+ensure_model_files()
 
 # ================== LOAD MODEL ==================
 print("🚀 Loading fine-tuned phishing detection model...")
@@ -91,6 +126,7 @@ def detect_phishing():
         "recommendation": recommendation
     })
 
+
 @app.route("/api/analyze", methods=["POST"])
 def analyze_url():
     """Perform full URL analysis using threat intelligence + ML model."""
@@ -118,6 +154,7 @@ def analyze_url():
         "recommendation": recommendation
     })
 
+
 @app.route("/api")
 def api_info():
     """API Information endpoint."""
@@ -125,6 +162,7 @@ def api_info():
         "message": "🛡️ SentinelURL - Real-Time Phishing Detection API",
         "endpoints": ["/api/detect", "/api/analyze"]
     })
+
 
 # ================== SERVER RUN ==================
 if __name__ == "__main__":
